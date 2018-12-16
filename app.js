@@ -46,7 +46,9 @@ const MealCtrl = (function() {
       return newMeal;
     },
     getMealById: function(id) {
+      // Temp Var
       let found = null;
+
       // Loop through meals
       data.meals.forEach(function(meal) {
         if (meal.id === id) {
@@ -55,6 +57,21 @@ const MealCtrl = (function() {
       });
       return found;
     },
+    updateMeal: function(name, calories) {
+      // Calories string -> number
+      calories = parseInt(calories);
+      let found = null;
+
+      data.meals.forEach(function(meal) {
+        if (meal.id === data.currentMeal.id) {
+          meal.name = name;
+          meal.calories = calories;
+          found = meal;
+        }
+      });
+      return found;
+    },
+    // Setter + Getter for Current Meals
     setCurrentMeal: function(meal) {
       data.currentMeal = meal;
     },
@@ -75,6 +92,7 @@ const MealCtrl = (function() {
       // Return total
       return data.totalCalories;
     },
+    // Useful to log "data.meals[]" any time
     logData: function() {
       return data;
     }
@@ -86,6 +104,7 @@ const UICtrl = (function() {
   // Dynamic UI Selectors
   const UISelectors = {
     mealList: "#meal-list",
+    listItems: "#meal-list li",
     addBtn: ".add-btn",
     updateBtn: ".update-btn",
     deleteBtn: ".delete-btn",
@@ -139,6 +158,25 @@ const UICtrl = (function() {
         .querySelector(UISelectors.mealList)
         .insertAdjacentElement("beforeend", li);
     },
+    updateListItem: function(meal) {
+      let listItems = document.querySelectorAll(UISelectors.listItems);
+
+      // NodeList->Array[]
+      listItems = Array.from(listItems);
+
+      listItems.forEach(function(listItem) {
+        const itemID = listItem.getAttribute("id");
+
+        if (itemID === `meal-${meal.id}`) {
+          document.querySelector(`#${itemID}`).innerHTML = `<strong>${
+            meal.name
+          }: </strong> <em>${meal.calories} Calories</em>
+          <a href="#" class="secondary-content">
+            <i class="edit-meal fa fa-pencil"></i>
+          </a>`;
+        }
+      });
+    },
     clearInput: function() {
       document.querySelector(UISelectors.mealNameInput).value = "";
       document.querySelector(UISelectors.mealCaloriesInput).value = "";
@@ -160,6 +198,7 @@ const UICtrl = (function() {
         UISelectors.totalCalories
       ).textContent = totalCalories;
     },
+    // Change State onClick "CLEAR ALL"
     clearEditState: function() {
       UICtrl.clearInput();
       document.querySelector(UISelectors.updateBtn).style.display = "none";
@@ -167,6 +206,7 @@ const UICtrl = (function() {
       document.querySelector(UISelectors.backBtn).style.display = "none";
       document.querySelector(UISelectors.addBtn).style.display = "inline";
     },
+    // Change State
     showEditState: function() {
       document.querySelector(UISelectors.updateBtn).style.display = "inline";
       document.querySelector(UISelectors.deleteBtn).style.display = "inline";
@@ -191,9 +231,22 @@ const App = (function(MealCtrl, UICtrl) {
       .querySelector(UISelectors.addBtn)
       .addEventListener("click", mealAddSubmit);
 
+    // Disable re-submit on enter (because of Update Btn)
+    document.addEventListener("keypress", e => {
+      if (e.keycode === 13 || e.which === 13) {
+        e.preventDefault();
+
+        return false;
+      }
+    });
     // Edit icon click event
     document
       .querySelector(UISelectors.mealList)
+      .addEventListener("click", mealEditClick);
+
+    // Update icon click event
+    document
+      .querySelector(UISelectors.updateBtn)
       .addEventListener("click", mealUpdateSubmit);
   };
 
@@ -222,27 +275,51 @@ const App = (function(MealCtrl, UICtrl) {
     e.preventDefault();
   };
 
-  // Update meal submit
-  const mealUpdateSubmit = function(e) {
+  // onClick 'edit-meal' btn
+  const mealEditClick = function(e) {
     if (e.target.classList.contains("edit-meal")) {
-      // Get list item id (item-0, item-1)
+      // LOG that DOM structure details
+      console.log("e:", e);
+
+      // GET that list item/meal.id [meal-0, meal-1, etc...]
       const listId = e.target.parentNode.parentNode.id;
 
-      // Break into an array
+      // BREAK that 'meal-id' into an array
       const listIdArr = listId.split("-");
 
-      // Get the actual id
+      // GET that actual 'id' ONLY [index:1];
       const id = parseInt(listIdArr[1]);
 
-      // Get meal
+      // GET that meal BY new Method of MeatCtrl(using 'id')
       const mealToEdit = MealCtrl.getMealById(id);
 
-      // Set current meal
+      // SET that current meal BY new Method of MeatCtrl
       MealCtrl.setCurrentMeal(mealToEdit);
 
       // Add meal to form
       UICtrl.addMealToForm();
     }
+
+    e.preventDefault();
+  };
+
+  // Update meal submit
+  const mealUpdateSubmit = function(e) {
+    // GET that meal input
+    const input = UICtrl.getMealInput();
+
+    // UPDATE that meal
+    const updatedMeal = MealCtrl.updateMeal(input.name, input.calories);
+
+    // UPDATE the UI
+    UICtrl.updateListItem(updatedMeal);
+
+    // Get total calories
+    const totalCalories = MealCtrl.getTotalCalories();
+    // Add total calories to UI
+    UICtrl.showTotalCalories(totalCalories);
+
+    UICtrl.clearEditState();
 
     e.preventDefault();
   };
