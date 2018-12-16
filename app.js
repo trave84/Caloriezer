@@ -170,6 +170,11 @@ const UICtrl = (function() {
         .querySelector(UISelectors.mealList)
         .insertAdjacentElement("beforeend", li);
     },
+    deleteListIem: function(id) {
+      const itemID = `#meal-${id}`;
+      const item = document.querySelector(itemID);
+      item.remove();
+    },
     updateListItem: function(meal) {
       let listItems = document.querySelectorAll(UISelectors.listItems);
 
@@ -353,6 +358,16 @@ const App = (function(MealCtrl, UICtrl) {
 
     // Delete from DATA
     MealCtrl.deleteMeal(currMeal.id);
+
+    // Delete from  UI
+    UICtrl.deleteListIem(currMeal.id);
+
+    // Get total calories
+    const totalCalories = MealCtrl.getTotalCalories();
+    // Add total calories to UI
+    UICtrl.showTotalCalories(totalCalories);
+
+    UICtrl.clearEditState();
 
     e.preventDefault();
   };
