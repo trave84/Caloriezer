@@ -1,4 +1,35 @@
-// Storage Controller
+// Storage Controller to RUN AUTO
+const StorageCtrl = (function() {
+  //Public methods
+  return {
+    storeMeal: function(meal) {
+      let meals = [];
+      // if there is NONE in LS  then []
+      if (localStorage.getItem("meals") === null) {
+        meals.push(meal);
+
+        // SET new Array[] to LS
+        localStorage.setItem("meals", JSON.stringify(meals));
+
+        // if there is some GET those !
+      } else {
+        meals = JSON.parse(localStorage.getItem("meals"));
+      }
+      // ADD this meal to meals[]
+      meals.push(meal);
+      // RE-SET with new Array[] to LS
+      localStorage.setItem("meals", JSON.stringify(meals));
+    },
+    getMealsFromStorage: function() {
+      if (localStorage.getItem("meals") === null) {
+        meals = [];
+      } else {
+        meals = JSON.parse(localStorage.getItem("meals"));
+      }
+      return meals;
+    }
+  };
+})();
 
 // Meal Controller
 const MealCtrl = (function() {
@@ -9,13 +40,9 @@ const MealCtrl = (function() {
     this.calories = calories;
   };
 
-  // Data Structure / State
+  // Data Structure / localStorage Persistent
   const data = {
-    meals: [
-      // {id: 0, name: 'Steak Dinner', calories: 1200},
-      // {id: 1, name: 'Cookie', calories: 400},
-      // {id: 2, name: 'Eggs', calories: 300}
-    ],
+    meals: StorageCtrl.getMealsFromStorage(),
     currentMeal: null,
     totalCalories: 0
   };
@@ -253,7 +280,7 @@ const UICtrl = (function() {
 })();
 
 // App Controller
-const App = (function(MealCtrl, UICtrl) {
+const App = (function(MealCtrl, StorageCtrl, UICtrl) {
   // Load event listeners
   const loadEventListeners = function() {
     // Get UI selectors
@@ -315,6 +342,9 @@ const App = (function(MealCtrl, UICtrl) {
       const totalCalories = MealCtrl.getTotalCalories();
       // Add total calories to UI
       UICtrl.showTotalCalories(totalCalories);
+
+      // Store Data  in localStorage
+      StorageCtrl.storeMeal(newMeal);
 
       // Clear fields
       UICtrl.clearInput();
@@ -436,7 +466,7 @@ const App = (function(MealCtrl, UICtrl) {
       loadEventListeners();
     }
   };
-})(MealCtrl, UICtrl);
+})(MealCtrl, StorageCtrl, UICtrl);
 
 // Initialize App
 App.init();
