@@ -83,6 +83,12 @@ const MealCtrl = (function() {
       // REMOVE that meal
       data.meals.splice(index, 1);
     },
+    clearAllMeals: function() {
+      data.meals = [];
+
+      // Remove fro UI
+      UICtrl.clearAllItems();
+    },
     // Setter + Getter for Current Meals
     setCurrentMeal: function(meal) {
       data.currentMeal = meal;
@@ -121,6 +127,7 @@ const UICtrl = (function() {
     updateBtn: ".update-btn",
     deleteBtn: ".delete-btn",
     backBtn: ".back-btn",
+    clearBtn: ".clear-btn",
     mealNameInput: "#meal-name",
     mealCaloriesInput: "#meal-calories",
     totalCalories: ".total-calories"
@@ -207,6 +214,15 @@ const UICtrl = (function() {
       ).value = MealCtrl.getCurrentMeal().calories;
       UICtrl.showEditState();
     },
+    clearAllItems: function() {
+      let listItems = document.querySelectorAll(UISelectors.listItems);
+
+      // Nodelist->Array[]
+      listItems = Array.from(listItems);
+      listItems.forEach(function(item) {
+        item.remove();
+      });
+    },
     hideList: function() {
       document.querySelector(UISelectors.mealList).style.display = "none";
     },
@@ -256,25 +272,30 @@ const App = (function(MealCtrl, UICtrl) {
         return false;
       }
     });
-    // Edit icon click event
+    // Edit btn event
     document
       .querySelector(UISelectors.mealList)
       .addEventListener("click", mealEditClick);
 
-    // Update icon click event
+    // Update btn  event
     document
       .querySelector(UISelectors.updateBtn)
       .addEventListener("click", mealUpdateSubmit);
 
-    // Delete icon click event
+    // Delete btn  event
     document
       .querySelector(UISelectors.deleteBtn)
       .addEventListener("click", mealDeleteSubmit);
 
-    // Back icon click event
+    // Back btn  event
     document
       .querySelector(UISelectors.backBtn)
       .addEventListener("click", UICtrl.clearEditState);
+
+    // ClearAll btn  event
+    document
+      .querySelector(UISelectors.clearBtn)
+      .addEventListener("click", clearAllMealsSubmit);
   };
 
   // Add meal submit
@@ -370,6 +391,23 @@ const App = (function(MealCtrl, UICtrl) {
     UICtrl.clearEditState();
 
     e.preventDefault();
+  };
+
+  // ClearAll meals submit
+  const clearAllMealsSubmit = function() {
+    // ClearAll items from Data
+    MealCtrl.clearAllMeals();
+
+    // Get total calories
+    const totalCalories = MealCtrl.getTotalCalories();
+    // Add total calories to UI
+    UICtrl.showTotalCalories(totalCalories);
+
+    //Remove from UI
+    UICtrl.clearEditState();
+
+    // Hide List
+    UICtrl.hideList();
   };
 
   // Public methods
