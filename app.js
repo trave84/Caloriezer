@@ -71,6 +71,18 @@ const MealCtrl = (function() {
       });
       return found;
     },
+    deleteMeal: function(id) {
+      // GET all IDs in new Array
+      const ids = data.meals.map(function(meal) {
+        return meal.id;
+      });
+
+      // GET index
+      const index = ids.indexOf(id);
+
+      // REMOVE that meal
+      data.meals.splice(index, 1);
+    },
     // Setter + Getter for Current Meals
     setCurrentMeal: function(meal) {
       data.currentMeal = meal;
@@ -248,6 +260,16 @@ const App = (function(MealCtrl, UICtrl) {
     document
       .querySelector(UISelectors.updateBtn)
       .addEventListener("click", mealUpdateSubmit);
+
+    // Delete icon click event
+    document
+      .querySelector(UISelectors.deleteBtn)
+      .addEventListener("click", mealDeleteSubmit);
+
+    // Back icon click event
+    document
+      .querySelector(UISelectors.backBtn)
+      .addEventListener("click", UICtrl.clearEditState);
   };
 
   // Add meal submit
@@ -279,7 +301,7 @@ const App = (function(MealCtrl, UICtrl) {
   const mealEditClick = function(e) {
     if (e.target.classList.contains("edit-meal")) {
       // LOG that DOM structure details
-      console.log("e:", e);
+      // console.log("e:", e);
 
       // GET that list item/meal.id [meal-0, meal-1, etc...]
       const listId = e.target.parentNode.parentNode.id;
@@ -320,6 +342,17 @@ const App = (function(MealCtrl, UICtrl) {
     UICtrl.showTotalCalories(totalCalories);
 
     UICtrl.clearEditState();
+
+    e.preventDefault();
+  };
+
+  // Delete meal submit
+  const mealDeleteSubmit = function(e) {
+    // GET current meal
+    const currMeal = MealCtrl.getCurrentMeal();
+
+    // Delete from DATA
+    MealCtrl.deleteMeal(currMeal.id);
 
     e.preventDefault();
   };
